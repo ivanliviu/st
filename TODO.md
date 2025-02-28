@@ -1,0 +1,4 @@
+- theme color in env
+- auto-resize to 2 neovim windows (+ 1 for sep) (maybe also in env)
+	- go based on how resize shortcuts work
+- fix code style
