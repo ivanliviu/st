@@ -3,6 +3,7 @@
 
 /* appearance
  * font: see http://freedesktop.org/software/fontconfig/fontconfig-user.html */
+// ! 14 pixels wide
 static char *font =
     "CaskaydiaCove Nerd Font Mono:pixelsize=24:antialias=true:autohint=true";
 static char *font2[] = {
@@ -148,34 +149,45 @@ void hsl_to_hex(double h, double s, double l, char *hex) {
   sprintf(hex, "#%02x%02x%02x", ri, gi, bi);
 }
 
+int main_hue = 255;
 static char fg[8];
 static char bg[8];
+static char colors[12][8];
+
 __attribute__((constructor)) static void setup() {
-  hsl_to_hex(255, 0.25, 0.125, bg);
-  hsl_to_hex(75, 0.75, 0.875, fg);
+  hsl_to_hex(main_hue, 0.25, 0.125, bg);
+  hsl_to_hex(main_hue - 180, 0.75, 0.875, fg); // TODO: universal hue wrap
+  for (int i = 0; i < 12; ++i) {
+    hsl_to_hex((main_hue + 180) % 360, 0.875, 0.75,
+               colors[i]); // TODO: as above
+  }
+}
+
+char *closest(int hue) {
+  return colors[(int)((hue - main_hue) % 360 / 30) % 12 + 1];
 }
 
 /* Terminal colors (16 first used in escape sequence) */
 static const char *colorname[] = {
     /* 8 normal colors */
-    [8] = "#080020",  /* black   */
-    [9] = "#ff8080",  /* red     */
-    [10] = "#80ff80", /* green   */
-    [11] = "#ffff80", /* yellow  */
-    [12] = "#a080ff", /* blue    */
-    [13] = "#ff80c0", /* magenta */
-    [14] = "#80ffff", /* cyan    */
-    [15] = "#e7dfff", /* white   */
+    [8] = "#080020",     /* black   */
+    [9] = closest(0),    /* red     */
+    [10] = closest(120), /* green   */
+    [11] = closest(60),  /* yellow  */
+    [12] = closest(240), /* blue    */
+    [13] = closest(300), /* magenta */
+    [14] = closest(180), /* cyan    */
+    [15] = "#e7dfff",    /* white   */
 
     /* 8 bright colors */
-    [0] = "#1e1c24", /* black   */
-    [1] = "#ffa0a0", /* red     */
-    [2] = "#a0ffa0", /* green   */
-    [3] = "#ffffa0", /* yellow  */
-    [4] = "#b8a0ff", /* blue    */
-    [5] = "#ffa0d0", /* magenta */
-    [6] = "#a0ffff", /* cyan    */
-    [7] = "#ffffff", /* white   */
+    [0] = "#1e1c24",    /* black   */
+    [1] = closest(30),  /* red     */
+    [2] = closest(150), /* green   */
+    [3] = closest(90),  /* yellow  */
+    [4] = closest(270), /* blue    */
+    [5] = closest(330), /* magenta */
+    [6] = closest(210), /* cyan    */
+    [7] = "#ffffff",    /* white   */
 
     [255] = 0,
     /* more colors can be added after 255 to use with DefaultXX */
