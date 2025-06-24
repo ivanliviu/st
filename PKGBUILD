@@ -8,7 +8,6 @@ epoch=1
 pkgdesc="Luke's simple (suckless) terminal with vim-bindings, transparency, xresources, etc. "
 url='https://github.com/LukeSmithxyz/st'
 arch=('i686' 'x86_64')
-license=('MIT')
 options=('zipman')
 depends=('libxft')
 makedepends=('ncurses' 'libxext' 'git')

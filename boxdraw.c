@@ -1,6 +1,3 @@
-/* Copyright 2018 Avi Halachmi (:avih) avihpit@yahoo.com https://github.com/avih
- * MIT/X Consortium License */
-
 #include <X11/Xft/Xft.h>
 
 #include "boxdraw_data.h"
