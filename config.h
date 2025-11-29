@@ -110,91 +110,63 @@ float alpha = 0.875;
 float alphaOffset = 0.0;
 float alphaUnfocus;
 
-void hsl_to_hex(double h, double s, double l, char *hex) {
-  double c = (1 - fabs(2 * l - 1)) * s;
-  double x = c * (1 - fabs(fmod(h / 60.0, 2) - 1));
-  double m = l - c * 0.5;
-  double r, g, b;
-
-  if (h < 60) {
-    r = c;
-    g = x;
-    b = 0;
-  } else if (h < 120) {
-    r = x;
-    g = c;
-    b = 0;
-  } else if (h < 180) {
-    r = 0;
-    g = c;
-    b = x;
-  } else if (h < 240) {
-    r = 0;
-    g = x;
-    b = c;
-  } else if (h < 300) {
-    r = x;
-    g = 0;
-    b = c;
-  } else {
-    r = c;
-    g = 0;
-    b = x;
-  }
-
-  int ri = (int)((r + m) * 255);
-  int gi = (int)((g + m) * 255);
-  int bi = (int)((b + m) * 255);
-
-  sprintf(hex, "#%02x%02x%02x", ri, gi, bi);
-}
-
-int main_hue = 255;
-static char fg[8];
-static char bg[8];
-static char colors[12][8];
-
-__attribute__((constructor)) static void setup() {
-  hsl_to_hex(main_hue, 0.25, 0.125, bg);
-  hsl_to_hex(main_hue - 180, 0.75, 0.875, fg); // TODO: universal hue wrap
-  for (int i = 0; i < 12; ++i) {
-    hsl_to_hex((main_hue + 180) % 360, 0.875, 0.75,
-               colors[i]); // TODO: as above
-  }
-}
-
-char *closest(int hue) {
-  return colors[(int)((hue - main_hue) % 360 / 30) % 12 + 1];
-}
+// Runtime generation of the palette from HSL values, left for reference:
+// main_hue = 255;
+// void hsl_to_hex(double h, double s, double l, char *hex) { ... }
+// int main_hue = 255;
+// static char fg[8];
+// static char bg[8];
+// static char colors[12][8];
+// __attribute__((constructor)) static void setup() {
+//   hsl_to_hex(main_hue, 0.25, 0.125, bg);
+//   hsl_to_hex(main_hue - 180, 0.75, 0.875, fg); // wrap handled by hsl_to_hex
+//   for (int i = 0; i < 12; ++i) {
+//     hsl_to_hex((main_hue + 180 + i * 30) % 360, 0.875, 0.75, colors[i]);
+//   }
+// }
+// char *closest(int hue) {
+//   return colors[(int)(((hue - main_hue) % 360) / 30) % 12];
+// }
+// Precomputed with the equivalent Python script:
+// main_hue=255
+// palette=[hsl_to_hex((main_hue+180+i*30)%360, 0.875, 0.75) for i in range(12)]
+// closest=lambda h: palette[int(((h-main_hue)%360)//30)%12]
+// bg=hsl_to_hex(main_hue, 0.25, 0.125)        # => #1b1727
+// fg=hsl_to_hex(main_hue-180, 0.75, 0.875)    # => #ebf7c7
+// closest(0)=#87f7db, 120=#db87f7, 60=#87a3f7, 240=#f7db87, 300=#a3f787,
+// closest(180)=#f787a3, 30=#87dbf7, 150=#f787db, 90=#a387f7, 270=#dbf787,
+// closest(330)=#87f7a3, 210=#f7a387
 
 /* Terminal colors (16 first used in escape sequence) */
 static const char *colorname[] = {
     /* 8 normal colors */
-    [8] = "#080020",     /* black   */
-    [9] = closest(0),    /* red     */
-    [10] = closest(120), /* green   */
-    [11] = closest(60),  /* yellow  */
-    [12] = closest(240), /* blue    */
-    [13] = closest(300), /* magenta */
-    [14] = closest(180), /* cyan    */
-    [15] = "#e7dfff",    /* white   */
+    [8] = "#080020",    /* black   */
+    [9] = "#87f7db",    /* red     */
+    [10] = "#db87f7",   /* green   */
+    [11] = "#87a3f7",   /* yellow  */
+    [12] = "#f7db87",   /* blue    */
+    [13] = "#a3f787",   /* magenta */
+    [14] = "#f787a3",   /* cyan    */
+    [15] = "#e7dfff",   /* white   */
 
     /* 8 bright colors */
-    [0] = "#1e1c24",    /* black   */
-    [1] = closest(30),  /* red     */
-    [2] = closest(150), /* green   */
-    [3] = closest(90),  /* yellow  */
-    [4] = closest(270), /* blue    */
-    [5] = closest(330), /* magenta */
-    [6] = closest(210), /* cyan    */
-    [7] = "#ffffff",    /* white   */
+    [0] = "#1e1c24",   /* black   */
+    [1] = "#87dbf7",   /* red     */
+    [2] = "#f787db",   /* green   */
+    [3] = "#a387f7",   /* yellow  */
+    [4] = "#dbf787",   /* blue    */
+    [5] = "#87f7a3",   /* magenta */
+    [6] = "#f7a387",   /* cyan    */
+    [7] = "#ffffff",   /* white   */
 
     [255] = 0,
     /* more colors can be added after 255 to use with DefaultXX */
     [256] = "#a080ff", /* cursor */
     [257] = "#ff8080", /* rev cursor */
-    [258] = bg,        // "#1e1c24", /* background */
-    [259] = fg,        // "#edfbc3", /* foreground */
+    // background/foreground from hsl_to_hex(main_hue, 0.25, 0.125) and
+    // hsl_to_hex(main_hue - 180, 0.75, 0.875)
+    [258] = "#1b1727", /* background */
+    [259] = "#ebf7c7", /* foreground */
 };
 
 /*
